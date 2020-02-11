@@ -2,7 +2,9 @@
 Welcome to the NebulaSmatLight Ardiono code. It is currently under development and the
 Nextion screen implementetion has not happened yet. Soon TM :)
 
-YOU ARE NOT PERMITTED TO REMOVE THE FOLLOWING BANNER FROM THE CODE
+MIT License
+
+Copyright (c) 2020 Eduardo M
 
 VERSION: 0.2
 DATE: 11/02/2020
