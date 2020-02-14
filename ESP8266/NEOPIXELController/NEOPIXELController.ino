@@ -1,13 +1,15 @@
 /*
 Welcome to the NebulaSmatLight Ardiono code. It is currently under development and the
-Nextion screen implementetion has not happened yet. Soon TM :)
+Nextion screen implementetion has not complete yet. Soon TM :)
 
 MIT License
 
 Copyright (c) 2020 Eduardo M
 
-VERSION: 0.2
-DATE: 11/02/2020
+VERSION: 0.5
+
+DATE: 14/02/2020
+
 Author: Eduardo M (Github: Aguilaair)
  */
 
@@ -19,13 +21,17 @@ Author: Eduardo M (Github: Aguilaair)
 #include <math.h>
 #include <Adafruit_NeoPixel.h>
 #include <EEPROM.h>
+#include <Nextion.h>
+#include <SoftwareSerial.h>
+
 
 ESP8266WiFiMulti WiFiMulti;
 WebSocketsClient webSocket;
 WiFiClient client;
 
 #define LED_PIN    D1
-#define LED_COUNT 60
+#define LED_COUNT 8
+#define LED1 "5axxxxxxxxxxxxxxxxxxxxx"
 
 
 
@@ -49,9 +55,9 @@ int blue = 255;
 int brightness = 255;
 bool on = true;
 
-#define MyApiKey "xxxxxxxxxxxxxxxxxxx" // TODO: Change to your sinric API Key. Your API Key is displayed on sinric.com dashboard
-#define MySSID "xxxxxxxxxxx" // TODO: Change to your Wifi network SSID
-#define MyWifiPassword "xxxxxxxxxxxxxx" // TODO: Change to your Wifi network password
+#define MyApiKey "xxxxxxxxxxxxxxxxxx" // TODO: Change to your sinric API Key. Your API Key is displayed on sinric.com dashboard
+#define MySSID "xxxxxxxxx" // TODO: Change to your Wifi network SSID
+#define MyWifiPassword "xxxxxxxxxx" // TODO: Change to your Wifi network password
 
 #define API_ENDPOINT "http://sinric.com"
 #define HEARTBEAT_INTERVAL 300000 // 5 Minutes 
@@ -59,21 +65,25 @@ bool on = true;
 uint64_t heartbeatTimestamp = 0;
 bool isConnected = false;
 
+SoftwareSerial nextion(D2, D3);// Nextion TX to pin 2 and RX to pin 3 of Arduino
+
+Nextion myNextion(nextion, 9600); //create a Nextion object named myNextion using the nextion serial port @ 9600bps
+
+int incomingByte = 0; // for incoming serial data
+
+
 void turnOn(String deviceId) {
-  if (deviceId == "xxxxxxxxxxxx") // Device ID of first device
+  if (deviceId == LED1) // Device ID of first device
   {
     on = true;
     Serial.print("Turn on device id: ");
     Serial.println(deviceId);
     setBrightness(brightness);
     RGB_color(red, green, blue);
+    myNextion.sendCommand("main.pwrmain.val=1");
+    myNextion.sendCommand("colorpicker.pwrmini1.val=1");
     EEPROM.put(on_Addr, on);
     EEPROM.commit();
-  }
-  else if (deviceId == "5axxxxxxxxxxxxxxxxxxx") // Device ID of second device
-  {
-    Serial.print("Turn on device id: ");
-    Serial.println(deviceId);
   }
   else {
     Serial.print("Turn on for unknown device id: ");
@@ -82,20 +92,17 @@ void turnOn(String deviceId) {
 }
 
 void turnOff(String deviceId) {
-  if (deviceId == "xxxxxxxxxxxxxxx") // Device ID of first device
+  if (deviceId == LED1) // Device ID of first device
   {
     on = false;
     Serial.print("Turn off Device ID: ");
     Serial.println(deviceId);
     strip.clear();
     strip.show();
+    myNextion.sendCommand("main.pwrmain.val=0");
+    myNextion.sendCommand("colorpicker.pwrmini1.val=0");
     EEPROM.put(on_Addr, on);
     EEPROM.commit();
-  }
-  else if (deviceId == "5axxxxxxxxxxxxxxxxxxx") // Device ID of second device
-  {
-    Serial.print("Turn off Device ID: ");
-    Serial.println(deviceId);
   }
   else {
     Serial.print("Turn off for unknown device id: ");
@@ -109,6 +116,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       isConnected = false;
       Serial.printf("[WSc] Webservice disconnected from sinric.com!\n");
       break;
+      myNextion.sendCommand("wifistatus.picc=1");
     case WStype_CONNECTED: {
         isConnected = true;
         Serial.printf("[WSc] Service connected to sinric.com at url: %s\n", payload);
@@ -117,13 +125,14 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
         chase(strip.Color(0, 255, 0));
 
         RGB_color(red, green, blue);
+        myNextion.sendCommand("main.wifistatus.picc=2");
       }
       break;
     case WStype_TEXT: {
         Serial.printf("[WSc] get text: %s\n", payload);
 
         /*
-           {"deviceId":"5e28764500886b552b7519fc","action":"action.devices.commands.OnOff","value":{"on":true}}
+           {"deviceId":LED1,"action":"action.devices.commands.OnOff","value":{"on":true}}
 
         */
 
@@ -193,11 +202,15 @@ void RGB_color(int red_light_value, int green_light_value, int blue_light_value)
     color = strip.Color(red, green, blue);
     strip.fill(color);
     strip.show();
+    myNextion.sendCommand("main.pwrmain.val=1");
+    myNextion.sendCommand("colorpicker.pwrmini1.val=1");
   }
   else if (on == false){
     color = strip.Color(0, 0, 0);
     strip.fill(color);
     strip.show();
+    myNextion.sendCommand("main.pwrmain.val=0");
+    myNextion.sendCommand("colorpicker.pwrmini1.val=0");
   }
   EEPROM.put(R_Addr, red_light_value);
   EEPROM.put(B_Addr, blue_light_value);
@@ -221,20 +234,26 @@ void setBrightness(int br) {
   EEPROM.commit();
   Serial.print(br);
   Serial.println("%");
+  myNextion.sendCommand(("main.br.val=" + String(br)).c_str() );
+  myNextion.sendCommand(("colorpicker.br.val=" + String(br)).c_str());
+  myNextion.sendCommand(("colorpicker.brslider.val=" + String(br)).c_str());
   br = br * 2.55;
   Serial.print("So, multiplier is: ");
   Serial.println(br);
   strip.setBrightness(br);
   strip.show();
+  
 
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   EEPROM.begin(30);
-
+  myNextion.init("0");
+  
   strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
 
+  
 
   Serial.println(EEPROM.get(R_Addr, red));
   Serial.println(EEPROM.get(B_Addr, blue));
@@ -259,11 +278,15 @@ void setup() {
   Serial.print("Connecting to Wifi: ");
   Serial.println(MySSID);
 
+  myNextion.sendCommand("page 1");
+  myNextion.sendCommand("main.wifistatus.picc=1");
+
   // Waiting for Wifi connect
   while (WiFiMulti.run() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
     chase(strip.Color(255, 0, 0));
+    
 
   }
   if (WiFiMulti.run() == WL_CONNECTED) {
@@ -271,7 +294,7 @@ void setup() {
     Serial.print("WiFi connected. ");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
-
+    myNextion.sendCommand("main.wifistatus.picc=2");
   }
 
   // server address, port and URL
@@ -290,11 +313,24 @@ void loop() {
 
   if (isConnected) {
     uint64_t now = millis();
-
     // Send heartbeat in order to avoid disconnections during ISP resetting IPs over night. Thanks @MacSass
     if ((now - heartbeatTimestamp) > HEARTBEAT_INTERVAL) {
       heartbeatTimestamp = now;
       webSocket.sendTXT("H");
     }
   }
+  
+  String message = myNextion.listen(); //check for message
+  if (message == "ON") {
+    turnOn(LED1);
+  }
+  else if (message == "OFF") {
+    turnOff(LED1);
+  }
+  else if (String(message).toInt() != 0){
+    brightness = String(message).toInt();
+    setBrightness(brightness);
+  }
+  
+  
 }
