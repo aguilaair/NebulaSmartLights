@@ -64,7 +64,7 @@ int brightness = 255;
 bool on = true;
 
 #define MyApiKey "xxxxxxxxxxxxxxxxxxx" // TODO: Change to your sinric API Key. Your API Key is displayed on sinric.com dashboard
-#define MySSID "xxxxxxxxxxxx" // TODO: Change to your Wifi network SSID
+#define MySSID "xxxxxxxxxxxxx" // TODO: Change to your Wifi network SSID
 #define MyWifiPassword "xxxxxxxxxxxx" // TODO: Change to your Wifi network password
 
 #define API_ENDPOINT "http://sinric.com"
