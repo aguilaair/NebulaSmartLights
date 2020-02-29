@@ -39,7 +39,7 @@ WiFiClient client;
 
 #define LED_PIN    D1
 #define LED_COUNT 10
-#define LED1 "xxxxxxxxxxxxxxxxxxxxx"
+#define LED1 "5e4a94180aa6af07008366e4"
 
 
 
@@ -63,9 +63,9 @@ int blue = 255;
 int brightness = 255;
 bool on = true;
 
-#define MyApiKey "xxxxxxxxxxxxxxxxxxx" // TODO: Change to your sinric API Key. Your API Key is displayed on sinric.com dashboard
-#define MySSID "xxxxxxxxxxxx" // TODO: Change to your Wifi network SSID
-#define MyWifiPassword "xxxxxxxxxxxx" // TODO: Change to your Wifi network password
+#define MyApiKey "66470be6-244b-4602-9c5e-xxxxxx" // TODO: Change to your sinric API Key. Your API Key is displayed on sinric.com dashboard
+#define MySSID "D-xxxx" // TODO: Change to your Wifi network SSID
+#define MyWifiPassword "xxxx" // TODO: Change to your Wifi network password
 
 #define API_ENDPOINT "http://sinric.com"
 #define HEARTBEAT_INTERVAL 300000 // 5 Minutes 
@@ -136,13 +136,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
       isConnected = false;
-      NextionUpdate();
       Serial.printf("[WSc] Webservice disconnected from sinric.com!\n");
       myNextion.sendCommand("wifistatus.picc=1");
       myNextion.sendCommand("colorpicker.wifistatus.picc=1");
       break;
     case WStype_CONNECTED: {
-        NextionUpdate();
         isConnected = true;
         Serial.printf("[WSc] Service connected to sinric.com at url: %s\n", payload);
         Serial.printf("Waiting for commands from sinric.com ...\n");
@@ -300,11 +298,11 @@ void setup() {
   // Waiting for Wifi connect
   Serial.print("Connecting to WiFi...");
   while (WiFiMulti.run() != WL_CONNECTED) {
+    delay(500);
     NextionUpdate();
   }
 
   if (WiFiMulti.run() == WL_CONNECTED) {
-    NextionUpdate();
     Serial.println("");
     Serial.print("WiFi connected. ");
     Serial.print("IP address: ");
