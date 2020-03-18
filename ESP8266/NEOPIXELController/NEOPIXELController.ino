@@ -46,14 +46,14 @@ int blue = 255;
 int brightness = 255;
 bool on = true;
 
-#define MyApiKey "66470be6-244b-4602-9c5e-eec7a2d15aa5" // TODO: Change to your sinric API Key. Your API Key is displayed on sinric.com dashboard
-#define MySSID "D-LINK" // TODO: Change to your Wifi network SSID
-#define MyWifiPassword "12331233" // TODO: Change to your Wifi network password
+#define MyApiKey "xxxxxxxx" // TODO: Change to your sinric API Key. Your API Key is displayed on sinric.com dashboard
+#define MySSID "xxxxx" // TODO: Change to your Wifi network SSID
+#define MyWifiPassword "xxxxx" // TODO: Change to your Wifi network password
 
 #define API_ENDPOINT "http://sinric.com"
 #define HEARTBEAT_INTERVAL 300000 // 5 Minutes 
 
-String devid = "5e5a4867a23b266b59a95ecf";
+String devid = "xxxxxx";
 
 uint64_t heartbeatTimestamp = 0;
 bool isConnected = false;
